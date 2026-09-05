@@ -12,6 +12,7 @@ Repository này ghi lại toàn bộ lộ trình học tập và thực hành b�
 | [02_sampling_parameters.py](file:///c:/Study/AI/02_sampling_parameters.py) | **Core Elements: Sampling Parameters** | • Mô phỏng toán học Next-Token Prediction & Softmax.<br>• Tác động của **Temperature** ($0.1 \to 1.5$).<br>• Cơ chế lọc an toàn: **Top-K** vs **Top-P (Nucleus)**.<br>• Chống lặp từ: **Frequency Penalty** & **Presence Penalty**. |
 | [03_prompt_anatomy.py](file:///c:/Study/AI/03_prompt_anatomy.py) | **Prompt Engineering: Prompt Anatomy** | • Giải phẫu 6 thành phần của Prompt chuẩn Production.<br>• Phân tách ngữ cảnh bằng **Delimiters** chống Prompt Injection.<br>• Ép kiểu dữ liệu đầu ra an toàn với **Pydantic Schema (Structured Output)**. |
 | [04_prompting_techniques.py](file:///c:/Study/AI/04_prompting_techniques.py) | **Prompt Engineering: Prompting Techniques** | • **Zero-Shot**: Hỏi trực tiếp.<br>• **Few-Shot**: Học qua ví dụ mẫu gán nhãn.<br>• **Chain-of-Thought (CoT)**: Dẫn dắt suy luận từng bước.<br>• **ReAct**: Vòng lặp *Thought ➔ Action ➔ Observation* (nền tảng của AI Agents). |
+| [05_model_interaction.py](file:///c:/Study/AI/05_model_interaction.py) | **Prompt Engineering: Model Interaction** | • **Function Calling**: Định nghĩa Tool Schema & quy trình 3 bước gọi tool của Agent.<br>• **Prompt Caching**: Cơ chế Prefix Matching & bài toán tiết kiệm 90% chi phí.<br>• **Streaming Responses**: Cơ chế SSE và tối ưu chỉ số TTFT (Time To First Token). |
 
 ---
 
@@ -42,4 +43,7 @@ python 03_prompt_anatomy.py
 
 # Bài 4: Prompting Techniques (Zero-shot, Few-shot, CoT, ReAct)
 python 04_prompting_techniques.py
+
+# Bài 5: Model Interaction (Function Calling, Prompt Caching, Streaming)
+python 05_model_interaction.py
 ```
