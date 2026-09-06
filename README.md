@@ -16,6 +16,7 @@ Repository này ghi lại toàn bộ lộ trình học tập và thực hành b�
 | [06_context_fundamentals.py](file:///c:/Study/AI/06_context_fundamentals.py) | **Context Engineering: Fundamentals** | • Kiến trúc **Context Layer** đa nguồn.<br>• Mô phỏng giao thức chuẩn hóa **MCP (Model Context Protocol)**.<br>• Bảo mật ngữ cảnh: Che giấu PII (Email, Phone) & Chặn **Indirect Prompt Injection**. |
 | [07_context_techniques.py](file:///c:/Study/AI/07_context_techniques.py) | **Context Engineering: Techniques** | • **Memory Systems**: So sánh Sliding Window vs Summary Memory.<br>• **Context Compaction**: Nén cắt tỉa dữ liệu thừa tiết kiệm 85% token.<br>• **Long-Context Processing**: Trực quan hóa hiện tượng **"Lost in the Middle"**.<br>• **Stale & Historical Context**: Cơ chế State Tracking & Invalidation khi User đổi ý.<br>• **Multi-agent Isolation** & 4 **Context Failure Modes** (Distraction, Overcrowding, Clash, Positional Bias). |
 | [08_context_warehouses.py](file:///c:/Study/AI/08_context_warehouses.py) | **Context Engineering: Tools & Warehouses** | • **DataHub & Atlan**: Active Metadata & Business Glossary Catalog.<br>• **PostHog**: Live User Telemetry, Error Logs & Session Context.<br>• **Modus (Hypermode)**: Tầng kết nối API Wasm siêu tốc cho Context Layer. |
+| [09_types_of_models.py](file:///c:/Study/AI/09_types_of_models.py) | **Type of Models** | • **Pre-trained**: Phân biệt Base vs Instruct/Chat Models.<br>• **Closed vs Open-Source**: So sánh trade-offs & Ma trận quyết định doanh nghiệp.<br>• **Self-Hosted**: Bảng tính VRAM Lượng tử hóa (FP16/INT8/INT4 GGUF) & Chuẩn OpenAI-Compatible Client. |
 
 ---
 
@@ -58,4 +59,7 @@ python 07_context_techniques.py
 
 # Bài 8: Tools & Context Warehouses (Atlan, DataHub, PostHog, Modus)
 python 08_context_warehouses.py
+
+# Bài 9: Type of Models (Base vs Instruct, Closed vs Open, Self-Hosting & VRAM)
+python 09_types_of_models.py
 ```
