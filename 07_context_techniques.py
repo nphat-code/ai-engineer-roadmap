@@ -6,12 +6,15 @@ Bám sát lộ trình roadmap.sh/ai-engineer -> Context Engineering:
 1. Memory Systems (Sliding Buffer vs Summary Memory)
 2. Context Compaction (Kỹ thuật nén token)
 3. Long-Context Processing & "Lost in the Middle"
-4. Multi-agent Context Isolation vs Sharing
+4. Stale & Historical Context (Xử lý dữ liệu lỗi thời & State Tracking)
+5. Multi-agent Context Isolation vs Sharing
+6. Context Failure Modes (4 chế độ hỏng hóc ngữ cảnh)
 """
 
 import io
 import sys
 import tiktoken
+from typing import Dict, Any
 
 if sys.platform == "win32":
     if isinstance(sys.stdout, io.TextIOWrapper):
@@ -35,12 +38,11 @@ def count_tokens(text: str) -> int:
 def demo_memory_systems():
     console.print(Panel("[bold green]1. MEMORY SYSTEMS: SLIDING WINDOW BUFFER VS SUMMARY MEMORY[/bold green]", border_style="cyan"))
 
-    # Giả sử qua 10 lượt hội thoại, lịch sử chat gốc rất dài:
     raw_chat_history = [
         ("User", "Chào bot, tôi tên là Tuấn, lập trình viên Backend ở Hà Nội."),
         ("AI", "Chào anh Tuấn! Rất vui được hỗ trợ anh về các chủ đề Backend."),
         ("User", "Hôm nay tôi muốn tìm hiểu về cơ sở dữ liệu phân tán."),
-        ("AI", "Dạ vâng, cơ sở dữ liệu phân tán chia làm SQL phân tán (như CockroachDB) và NoSQL (như Cassandra)..."),
+        ("AI", "Dạ vâng, cơ sở dữ liệu phân tán chia làm SQL phân tán và NoSQL..."),
         ("User", "Tôi chọn PostgreSQL kết hợp Citus extension."),
         ("AI", "Citus extension là giải pháp sharding tuyệt vời cho PostgreSQL..."),
         ("User", "Tôi đã cấu hình 3 nodes worker và 1 coordinator."),
@@ -48,10 +50,7 @@ def demo_memory_systems():
         ("User", "Bây giờ tôi muốn viết script backup tự động thì làm thế nào?")
     ]
 
-    # Cách 1: Sliding Window Buffer (Chỉ giữ 2 lượt gần nhất) -> Quên mất tên User và bối cảnh Citus!
     sliding_window = raw_chat_history[-2:]
-
-    # Cách 2: Summary Memory (Tóm tắt các lượt cũ + giữ 2 lượt mới)
     summary_of_past = "Người dùng tên Tuấn, Backend Dev tại Hà Nội. Đang triển khai PostgreSQL + Citus (3 workers, 1 coordinator)."
 
     table = Table(title="So sánh cơ chế lưu trữ bộ nhớ")
@@ -96,9 +95,7 @@ def demo_context_compaction():
     ]
     """
 
-    # Sau khi AI đã quan sát xong, tầng Context Compaction nén dữ liệu này trước khi chuyển sang lượt tiếp theo:
     compacted_output = "Sản phẩm A: 100k (Còn hàng); Sản phẩm B: 250k (Hết hàng)"
-
     tokens_before = count_tokens(raw_tool_output)
     tokens_after = count_tokens(compacted_output)
     saved_percent = (1 - tokens_after / tokens_before) * 100
@@ -129,7 +126,7 @@ def demo_lost_in_the_middle():
              │  Đầu ngữ cảnh             Cuối ngữ cảnh │
              │  (Primacy Effect)       (Recency Effect)│
              │       \                               / │
-       30% ──┤        \                             /  ├── 30%
+        30% ──┤        \                             /  ├── 30%
              │         \      VÙNG NGUY HIỂM       /   │
              │          └─────── (BỊ BỎ QUÊN) ────┘    │
         0% ──┴─────────────────────────────────────────┴── 0%
@@ -144,11 +141,50 @@ def demo_lost_in_the_middle():
 
 
 # =====================================================================
-# 4. MULTI-AGENT CONTEXT ISOLATION
+# 4. STALE & HISTORICAL CONTEXT (XỬ LÝ DỮ LIỆU LỖI THỜI & STATE TRACKING)
+# =====================================================================
+def demo_stale_and_historical_context():
+    console.print()
+    console.print(Panel("[bold green]4. STALE & HISTORICAL CONTEXT (Xử lý Ngữ cảnh Lỗi thời & State Tracking)[/bold green]", border_style="cyan"))
+
+    # Tình huống: Người dùng đổi ý trong cuộc hội thoại đặt vé máy bay
+    table = Table(title="Mô phỏng State Tracking & Invalidation khi User đổi ý")
+    table.add_column("Lượt chat (Turn)", style="bold")
+    table.add_column("Tin nhắn của User", style="white")
+    table.add_column("Trạng thái Context cũ", style="dim red")
+    table.add_column("Trạng thái Context mới (Active State)", style="bold green")
+
+    table.add_row(
+        "Lượt 1",
+        "Tôi muốn đặt 1 vé máy bay đi Đà Nẵng sáng mai.",
+        "Chưa có",
+        "{destination: 'Đà Nẵng', departure: 'Sáng mai'}"
+    )
+    table.add_row(
+        "Lượt 2",
+        "Có chuyến nào của Vietnam Airlines không bạn?",
+        "{destination: 'Đà Nẵng'}",
+        "{destination: 'Đà Nẵng', airline: 'Vietnam Airlines'}"
+    )
+    table.add_row(
+        "Lượt 3 (Đổi ý)",
+        "Khoan đã! Tôi hủy chuyến Đà Nẵng, đổi sang đi Đà Lạt chiều mai nhé.",
+        "[STALE]: destination: 'Đà Nẵng'\n(Cũ - Phải vô hiệu hóa)",
+        "✅ [ACTIVE]: destination: 'Đà Lạt', departure: 'Chiều mai'\n(Đã ghi đè thành công)"
+    )
+    console.print(table)
+    console.print(
+        "[dim]💡 AI Engineer Insight: Nếu không có bộ State Tracker gạch bỏ thông tin cũ (Invalidation), "
+        "LLM rất dễ bị 'lú' và xác nhận nhầm vé máy bay đi Đà Nẵng cho khách hàng.[/dim]"
+    )
+
+
+# =====================================================================
+# 5. MULTI-AGENT CONTEXT ISOLATION
 # =====================================================================
 def demo_context_isolation():
     console.print()
-    console.print(Panel("[bold green]4. MULTI-AGENT CONTEXT SHARING VS CONTEXT ISOLATION[/bold green]", border_style="cyan"))
+    console.print(Panel("[bold green]5. MULTI-AGENT CONTEXT SHARING VS CONTEXT ISOLATION[/bold green]", border_style="yellow"))
 
     table = Table(title="Mô hình ngữ cảnh trong hệ thống Đa Agent (Multi-Agent)")
     table.add_column("Mô hình", style="bold")
@@ -168,8 +204,45 @@ def demo_context_isolation():
     console.print(table)
 
 
+# =====================================================================
+# 6. CONTEXT FAILURE MODES (CÁC CHẾ ĐỘ HỎNG HÓC CỦA NGỮ CẢNH)
+# =====================================================================
+def demo_context_failure_modes():
+    console.print()
+    console.print(Panel("[bold red]6. CONTEXT FAILURE MODES (4 'Bệnh' Kinh Điển của Ngữ Cảnh)[/bold red]", border_style="red"))
+
+    table = Table(title="Bảng phân loại Context Failure Modes")
+    table.add_column("Chế độ hỏng (Failure Mode)", style="bold red")
+    table.add_column("Hiện tượng thực tế", style="white")
+    table.add_column("Giải pháp của AI Engineer", style="green")
+
+    table.add_row(
+        "1. Distraction (Phân tâm)",
+        "RAG nhồi quá nhiều đoạn văn không liên quan, khiến AI trả lời lan man, lạc đề.",
+        "Dùng Reranker (Cross-encoder) để lọc gắt gao Top-3 tài liệu phù hợp nhất."
+    )
+    table.add_row(
+        "2. Overcrowding (Quá tải)",
+        "Cố nhét kín 100% Context Window khiến Attention bị phân tán, suy luận logic kém hẳn.",
+        "Đặt trần ngân sách Token (Token Budgeting) tối đa 70% Context Window."
+    )
+    table.add_row(
+        "3. Context Clash (Xung đột)",
+        "Hai tài liệu trong ngữ cảnh có số liệu mâu thuẫn nhau -> AI bịa đặt (Hallucination).",
+        "Đánh dấu phiên bản dữ liệu (Data Versioning) và ưu tiên tài liệu có timestamp mới nhất."
+    )
+    table.add_row(
+        "4. Positional Bias (Thiên kiến vị trí)",
+        "Thông tin quan trọng bị rơi vào vùng giữa Context (Lost in the Middle) và bị bỏ quên.",
+        "Sắp xếp lại thứ tự: Thông tin quan trọng nhất đặt ở ĐẦU hoặc CUỐI ngữ cảnh."
+    )
+    console.print(table)
+
+
 if __name__ == "__main__":
     demo_memory_systems()
     demo_context_compaction()
     demo_lost_in_the_middle()
+    demo_stale_and_historical_context()
     demo_context_isolation()
+    demo_context_failure_modes()
